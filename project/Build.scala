@@ -5,10 +5,10 @@ import AndroidKeys._
 
 object General {
   val settings = Defaults.defaultSettings ++ Seq (
-    name := "ScAS Android",
-    version := "0.1",
+    name := "meditor",
+    version := "1.0",
     versionCode := 0,
-    scalaVersion := "2.9.1",
+    scalaVersion := "2.9.2",
     platformName in Android := "android-8"
   )
 
@@ -23,25 +23,14 @@ object General {
     proguardSettings ++
     AndroidManifestGenerator.settings ++
     AndroidMarketPublish.settings ++ Seq (
-      keyalias in Android := "change-me",
-      libraryDependencies += "org.scalatest" %% "scalatest" % "1.8.RC1" % "test"
+      keyalias in Android := "mykey"
     )
 }
 
 object AndroidBuild extends Build {
   lazy val main = Project (
-    "ScAS Android",
+    "meditor",
     file("."),
     settings = General.fullAndroidSettings
   )
-
-  lazy val tests = Project (
-    "tests",
-    file("tests"),
-    settings = General.settings ++
-               AndroidTest.androidSettings ++
-               General.proguardSettings ++ Seq (
-      name := "ScAS AndroidTests"
-    )
-  ) dependsOn main
 }
