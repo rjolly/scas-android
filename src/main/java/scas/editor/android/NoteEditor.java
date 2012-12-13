@@ -37,6 +37,7 @@ import android.text.Selection;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import scas.application.Engine.Factory;
+import scas.application.MyApp;
 import scas.MathObject;
 
 /**
@@ -76,8 +77,31 @@ public class NoteEditor extends Activity {
     private EditText mText;
     private String mOriginalContent;
 
-    public static class MathEditText extends EditText {
+    static class Eval implements Runnable {
         ScriptEngine engine = new Factory().getScriptEngine();
+        String in;
+        String out;
+
+        public void run() {
+            if (in.equals("test")) MyApp.main(new String[] {});
+            try {
+                out = render(engine.eval(in));
+            } catch (ScriptException e) {
+                out = e.getMessage();
+            } catch (Exception e) {}
+        }
+
+        private String render(Object obj) throws Exception {
+            if (obj == null) return "null";
+            if (obj instanceof MathObject) {
+                return MathML.get("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?><math xmlns=\"http://www.w3.org/1998/Math/MathML\">" + ((MathObject)obj).toMathML() + "</math>");
+            }
+            return obj.toString();
+        }
+    }
+
+    public static class MathEditText extends EditText {
+        Eval eval = new Eval();
 
         public MathEditText(Context context, AttributeSet attrs) {
             super(context, attrs);
@@ -112,30 +136,22 @@ public class NoteEditor extends Activity {
             switch (id) {
 
                 case ID_EVAL:
-                    String in = getText().subSequence(min, max).toString();
-                    String out = null;
+                    eval.in = getText().subSequence(min, max).toString();
+                    eval.out = null;
+                    Thread t0 = Thread.currentThread();
+                    Thread t = new Thread(t0.getThreadGroup(), eval, t0.getName(), 16384l);
+                    t.start();
                     try {
-                        out = render(engine.eval(in));
-                    } catch (ScriptException e) {
-                        out = e.getMessage();
-                    } catch (Exception e) {}
-
-                    if (out != null && out.length() > 0) {
-                        getText().replace(min, max, out);
+                        t.join();
+                    } catch (InterruptedException e) {}
+                    if (eval.out != null && eval.out.length() > 0) {
+                        getText().replace(min, max, eval.out);
                         Selection.setSelection(getText(), getSelectionEnd());
                     }
                     return true;
                 }
 
             return super.onTextContextMenuItem(id);
-        }
-
-        private String render(Object obj) throws Exception {
-            if (obj == null) return "null";
-            if (obj instanceof MathObject) {
-                return MathML.get("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?><math xmlns=\"http://www.w3.org/1998/Math/MathML\">" + ((MathObject)obj).toMathML() + "</math>");
-            }
-            return obj.toString();
         }
 
         private static final int ID_EVAL = R.id.eval;

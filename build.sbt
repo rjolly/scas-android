@@ -1,1 +1,0 @@
-scalacOptions += "-no-specialization"
