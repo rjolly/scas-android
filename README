@@ -2,12 +2,12 @@
 Software needed:
 
 - Android SDK ( http://developer.android.com/sdk/ )
-- scala 2.9.2 ( http://www.scala-lang.org/ )
-- sbt 0.12.1 ( https://github.com/harrah/xsbt/ )
+- scala 2.11 ( http://www.scala-lang.org/ )
+- scas 2.1 ( http://github.com/rjolly/scas/ )
 
 
 To build scas-android on android sdk:
 
-  cp ../scas/target/scala-2.9.2/scas_2.9.2-2.0.jar lib/
-  sbt android:package-release
+  proguard.sh @proguard.cfg
+  ant release
 

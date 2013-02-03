@@ -37,8 +37,7 @@ import android.text.Selection;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import scas.application.Engine.Factory;
-import scas.application.MyApp;
-import scas.MathObject;
+import scas.application.MathML;
 
 /**
  * A generic activity for editing a note in a database.  This can be used
@@ -78,25 +77,17 @@ public class NoteEditor extends Activity {
     private String mOriginalContent;
 
     static class Eval implements Runnable {
+        MathML mml = new MathML("mmltxt.xsl");
         ScriptEngine engine = new Factory().getScriptEngine();
         String in;
         String out;
 
         public void run() {
-            if (in.equals("test")) MyApp.main(new String[] {});
             try {
-                out = render(engine.eval(in));
+                out = mml.apply(engine.eval(in));
             } catch (ScriptException e) {
                 out = e.getMessage();
             } catch (Exception e) {}
-        }
-
-        private String render(Object obj) throws Exception {
-            if (obj == null) return "null";
-            if (obj instanceof MathObject) {
-                return MathML.get("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?><math xmlns=\"http://www.w3.org/1998/Math/MathML\">" + ((MathObject)obj).toMathML() + "</math>");
-            }
-            return obj.toString();
         }
     }
 
@@ -109,7 +100,6 @@ public class NoteEditor extends Activity {
 
         @Override
         protected void onCreateContextMenu(ContextMenu menu) {
-            super.onCreateContextMenu(menu);
             boolean added = false;
             MathMenuHandler handler = new MathMenuHandler();
             if (canEval()) {
@@ -118,6 +108,7 @@ public class NoteEditor extends Activity {
                      setAlphabeticShortcut('e');
                 added = true;
             }
+            super.onCreateContextMenu(menu);
         }
 
         @Override
