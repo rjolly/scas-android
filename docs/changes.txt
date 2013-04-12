@@ -1,0 +1,5 @@
+Changes between version 4 and version 5:
+
++ evaluate menu item moved to top
++ conduit
+
