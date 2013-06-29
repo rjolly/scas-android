@@ -1,3 +1,10 @@
+Changes between version 5 and version 7:
+
++ real, imag, conjugate
++ comparison operators
++ boolean algebra
++ fling to scroll
+
 Changes between version 4 and version 5:
 
 + evaluate menu item moved to top

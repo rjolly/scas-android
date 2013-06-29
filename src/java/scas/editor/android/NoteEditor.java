@@ -24,6 +24,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Canvas;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.AttributeSet;
@@ -31,7 +34,11 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.widget.EditText;
+import android.widget.Scroller;
 import android.text.Selection;
 
 import javax.script.ScriptEngine;
@@ -91,11 +98,58 @@ public class NoteEditor extends Activity {
         }
     }
 
-    public static class MathEditText extends EditText {
+    public static class MathEditText extends EditText implements OnGestureListener {
         Eval eval = new Eval();
+        GestureDetector gestureDetector = new GestureDetector(getContext(), this);
+        Scroller scroller = new Scroller(getContext());
+        Rect drawingRect = new Rect();
+        Rect lineBounds = new Rect();
+        Point maxSize = new Point();
 
         public MathEditText(Context context, AttributeSet attrs) {
             super(context, attrs);
+        }
+
+        @Override
+        public void onDraw(Canvas canvas) {
+            int count = getLineCount();
+            getDrawingRect(drawingRect);
+            getLineBounds(count - 1, lineBounds);
+            maxSize.y = Math.max(lineBounds.bottom - drawingRect.height(), 0);
+            super.onDraw(canvas);
+        }
+
+        @Override
+        public void computeScroll() {
+            if (scroller.computeScrollOffset()) {
+                scrollTo(scroller.getCurrX(), scroller.getCurrY());
+            }
+        }
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            super.onTouchEvent(event);
+            return gestureDetector.onTouchEvent(event);
+        }
+
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        public boolean onSingleTapUp(MotionEvent e) {
+            return true;
+        }
+
+        public void onShowPress(MotionEvent e) {}
+
+        public void onLongPress(MotionEvent e) {}
+
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            return true;
+        }
+
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            scroller.fling(getScrollX(), getScrollY(), -(int) velocityX, -(int) velocityY, 0, maxSize.x, 0, maxSize.y);
+            return true;
         }
 
         @Override

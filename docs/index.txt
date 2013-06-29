@@ -1,7 +1,9 @@
 Mathematical editor - Android notepad sample, interfaced to the Scala Algebra System (ScAS)
 Computations with symbols as well as numbers : BigIntegers, Rationals, Polynomials, Rational functions, Complex numbers
-Supported operations : + - * / ^integer
-Functions: div, mod, factorial, factor
+Supported operations: + - * / ^integer
+Functions: div, mod, factorial, factor, real, imag, conjugate
+Comparison operators: = <> <= < >= >
+Boolean algebra: & | ^ ! =>
 
 Interaction through "Evaluate" action on selected text:
 (a+b)^2/(a^2-b^2) "Evaluate"
@@ -15,7 +17,6 @@ Derivatives & Integrals
 Polynomial factorization
 Vectors & Matrices
 Geometric algebra
-Boolean algebra
 
 http://github.com/rjolly/scas-android
 raphael.jolly@free.fr
