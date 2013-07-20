@@ -44,7 +44,8 @@ import android.text.Selection;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import scas.application.Engine.Factory;
-import scas.application.MathML;
+import scas.MathML;
+import scas.Graph;
 
 /**
  * A generic activity for editing a note in a database.  This can be used
@@ -91,7 +92,12 @@ public class NoteEditor extends Activity {
 
         public void run() {
             try {
-                out = mml.apply(engine.eval(in));
+                Object obj = engine.eval(in);
+                if (obj instanceof Graph) {
+                    out = String.valueOf(((Graph)obj).apply(0.0));
+                } else {
+                    out = mml.apply(obj);
+                }
             } catch (ScriptException e) {
                 out = e.getMessage();
             } catch (Exception e) {}

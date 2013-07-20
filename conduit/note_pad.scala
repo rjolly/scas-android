@@ -1,7 +1,7 @@
 import java.io.{File, FileReader, FileWriter}
 import java.sql.{DriverManager, Date}
 
-val mml = scas.application.MathML("mmltxt.xsl")
+val mml = scas.MathML("mmltxt.xsl")
 val cmd = System.getProperty("note_pad.cmd")
 val dirname = System.getProperty("note_pad.dir")
 val dir = new File(dirname)
