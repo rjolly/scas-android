@@ -84,7 +84,7 @@ public class NoteEditor extends Activity {
     private EditText mText;
     private String mOriginalContent;
 
-    static class Eval implements Runnable {
+    class Eval implements Runnable {
         MathML mml = new MathML("mmltxt.xsl");
         ScriptEngine engine = new Factory().getScriptEngine();
         String in;
@@ -94,7 +94,7 @@ public class NoteEditor extends Activity {
             try {
                 Object obj = engine.eval(in);
                 if (obj instanceof Graph) {
-                    out = String.valueOf(((Graph)obj).apply(0.0));
+                    start((Graph)obj);
                 } else {
                     out = mml.apply(obj);
                 }
@@ -104,8 +104,14 @@ public class NoteEditor extends Activity {
         }
     }
 
+    public void start(Graph graph) {
+        final Intent intent = new Intent(this, GraphActivity.class);
+        intent.putExtra(getPackageName() + ".graph", graph);
+        startActivity(intent);
+    }
+
     public static class MathEditText extends EditText implements OnGestureListener {
-        Eval eval = new Eval();
+        Eval eval = ((NoteEditor)getContext()).new Eval();
         GestureDetector gestureDetector = new GestureDetector(getContext(), this);
         Scroller scroller = new Scroller(getContext());
         Rect drawingRect = new Rect();
@@ -160,13 +166,11 @@ public class NoteEditor extends Activity {
 
         @Override
         protected void onCreateContextMenu(ContextMenu menu) {
-            boolean added = false;
             MathMenuHandler handler = new MathMenuHandler();
             if (canEval()) {
                 menu.add(0, ID_EVAL, 0, R.string.eval).
                      setOnMenuItemClickListener(handler).
                      setAlphabeticShortcut('e');
-                added = true;
             }
             super.onCreateContextMenu(menu);
         }

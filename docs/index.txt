@@ -3,11 +3,15 @@ Computations with symbols as well as numbers : BigIntegers, Rationals, Polynomia
 Supported operations: + - * / ^integer
 Functions: div, mod, factorial, factor, real, imag, conjugate
 Comparison operators: = <> <= < >= >
-Boolean algebra: & | ^ ! =>
+Boolean operators: & | ^ ! =>
+Constants: pi
 
 Interaction through "Evaluate" action on selected text:
 (a+b)^2/(a^2-b^2) "Evaluate"
 (a+b)/(a-b)
+
+Graphing:
+graph(f(x), x) "Evaluate"
 
 Planned:
 Algebraic functions
@@ -17,6 +21,7 @@ Derivatives & Integrals
 Polynomial factorization
 Vectors & Matrices
 Geometric algebra
+Boolean algebra
 
 http://github.com/rjolly/scas-android
 raphael.jolly@free.fr

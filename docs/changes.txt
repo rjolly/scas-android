@@ -1,3 +1,7 @@
+Changes between version 7 and version 8:
+
++ graphing
+
 Changes between version 5 and version 7:
 
 + real, imag, conjugate
