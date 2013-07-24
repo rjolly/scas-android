@@ -17,6 +17,7 @@ import android.view.ScaleGestureDetector;
 import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener;
 import android.view.View;
+import android.widget.Scroller;
 
 public class GraphActivity extends Activity {
     Graph graph;
@@ -30,6 +31,7 @@ public class GraphActivity extends Activity {
     }
 
     public static class GraphView extends View {
+        Scroller scroller = new Scroller(getContext());
         Graph graph = ((GraphActivity)getContext()).graph;
         Paint paint = new Paint();
         Paint red = new Paint();
@@ -38,12 +40,14 @@ public class GraphActivity extends Activity {
         double z = 1.0;
         double x0 = 0.0;
         double y0 = 0.0;
-        float x1;
-        float y1;
 
         OnGestureListener glistener = new SimpleOnGestureListener() {
+            float x1;
+            float y1;
+
             @Override
             public boolean onDown(MotionEvent e) {
+                scroller.forceFinished(true);
                 x1 = e.getX();
                 y1 = e.getY();
                 return true;
@@ -51,16 +55,38 @@ public class GraphActivity extends Activity {
 
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                shift(e2.getX() - x1, e2.getY() - y1);
-                invalidate();
+                if (!sgdetector.isInProgress()) {
+                    shift(e2.getX() - x1, e2.getY() - y1);
+                    invalidate();
+                }
                 x1 = e2.getX();
                 y1 = e2.getY();
+                return true;
+            }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                scroller.fling((int) x1, (int) y1, (int) velocityX, (int) velocityY, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        while (scroller.computeScrollOffset()) {
+                            shift(scroller.getCurrX() - x1, scroller.getCurrY() - y1);
+                            postInvalidate();
+                            x1 = scroller.getCurrX();
+                            y1 = scroller.getCurrY();
+                        }
+                    }
+                }.start();
                 return true;
             }
         };
         GestureDetector gdetector = new GestureDetector(getContext(), glistener);
 
         OnScaleGestureListener sglistener = new SimpleOnScaleGestureListener() {
+            float x1;
+            float y1;
+
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
                 shift(detector.getFocusX() - x1, detector.getFocusY() - y1);
@@ -80,12 +106,12 @@ public class GraphActivity extends Activity {
         };
         ScaleGestureDetector sgdetector = new ScaleGestureDetector(getContext(), sglistener);
 
-        void shift(double x, double y) {
+        synchronized void shift(double x, double y) {
             x0 += x / (double)h * 2.0 / z;
             y0 += y / (double)h * 2.0 / z;
         }
 
-        void scale(double a) {
+        synchronized void scale(double a) {
             z *= a;
         }
 
@@ -109,7 +135,7 @@ public class GraphActivity extends Activity {
         }
 
         @Override
-        protected void onDraw(Canvas canvas) {
+        protected synchronized void onDraw(Canvas canvas) {
             super.onDraw(canvas);
             int m1 = 0;
             float p[] = new float[w << 2];
