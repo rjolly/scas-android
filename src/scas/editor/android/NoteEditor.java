@@ -19,6 +19,7 @@ package scas.editor.android;
 import scas.editor.android.NotePad.Notes;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -42,7 +43,7 @@ import android.widget.Scroller;
 import android.text.Selection;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptException;
+
 import scas.application.Engine.Factory;
 import scas.MathML;
 import scas.Graph;
@@ -89,6 +90,7 @@ public class NoteEditor extends Activity {
         ScriptEngine engine = new Factory().getScriptEngine();
         String in;
         String out;
+        String error;
 
         public void run() {
             try {
@@ -98,9 +100,9 @@ public class NoteEditor extends Activity {
                 } else {
                     out = mml.apply(obj);
                 }
-            } catch (ScriptException e) {
-                out = e.getMessage();
-            } catch (Exception e) {}
+            } catch (Throwable e) {
+                error = e.getMessage();
+            }
         }
     }
 
@@ -112,6 +114,7 @@ public class NoteEditor extends Activity {
 
     public static class MathEditText extends EditText implements OnGestureListener {
         Eval eval = ((NoteEditor)getContext()).new Eval();
+    	AlertDialog dialog = new AlertDialog.Builder(getContext()).setTitle(R.string.error_title).create();
         GestureDetector gestureDetector = new GestureDetector(getContext(), this);
         Scroller scroller = new Scroller(getContext());
         Rect drawingRect = new Rect();
@@ -193,6 +196,7 @@ public class NoteEditor extends Activity {
                 case ID_EVAL:
                     eval.in = getText().subSequence(min, max).toString();
                     eval.out = null;
+                    eval.error = null;
                     Thread t0 = Thread.currentThread();
                     Thread t = new Thread(t0.getThreadGroup(), eval, t0.getName(), 16384l);
                     t.start();
@@ -202,6 +206,9 @@ public class NoteEditor extends Activity {
                     if (eval.out != null && eval.out.length() > 0) {
                         getText().replace(min, max, eval.out);
                         Selection.setSelection(getText(), getSelectionEnd());
+                    } else if (eval.error != null) {
+                    	dialog.setMessage(eval.error);
+                    	dialog.show();
                     }
                     return true;
                 }
