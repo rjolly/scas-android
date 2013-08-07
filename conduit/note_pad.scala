@@ -1,7 +1,7 @@
 import java.io.{File, FileReader, FileWriter}
 import java.sql.{DriverManager, Date}
 
-val mml = scas.MathML("mmltxt.xsl")
+val converter = new jscl.converter.Converter("mmltxt.xsl")
 val cmd = System.getProperty("note_pad.cmd")
 val dirname = System.getProperty("note_pad.dir")
 val dir = new File(dirname)
@@ -52,7 +52,7 @@ if (cmd == "pull") {
   var id = 0l
   dir.listFiles.filter(filter).foreach { file =>
     val reader = new FileReader(file)
-    val note = mml(reader)
+    val note = converter(reader)
     id += 1
     val name = file.getName
     val title = name.substring(0, name.lastIndexOf(".txt"))

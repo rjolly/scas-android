@@ -43,10 +43,10 @@ import android.widget.Scroller;
 import android.text.Selection;
 
 import javax.script.ScriptEngine;
-
 import scas.application.Engine.Factory;
-import scas.MathML;
+import scas.MathObject;
 import scas.Graph;
+import jscl.converter.Converter;
 
 /**
  * A generic activity for editing a note in a database.  This can be used
@@ -86,7 +86,7 @@ public class NoteEditor extends Activity {
     private String mOriginalContent;
 
     class Eval implements Runnable {
-        MathML mml = new MathML("mmltxt.xsl");
+        Converter converter = new Converter("mmltxt.xsl");
         ScriptEngine engine = new Factory().getScriptEngine();
         String in;
         String out;
@@ -97,12 +97,16 @@ public class NoteEditor extends Activity {
                 Object obj = engine.eval(in);
                 if (obj instanceof Graph) {
                     start((Graph)obj);
-                } else {
-                    out = mml.apply(obj);
+                } else if (obj instanceof MathObject) {
+                    out = apply((MathObject)obj);
                 }
             } catch (Throwable e) {
                 error = e.getMessage();
             }
+        }
+
+        String apply(MathObject obj) throws Exception {
+            return converter.apply("<math>" + obj.toMathML() + "</math>");
         }
     }
 

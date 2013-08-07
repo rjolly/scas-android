@@ -21,6 +21,6 @@ To run the conduit, add the conduit directory to your path, give conduit/note_pa
   note_pad pull/push docs
 
 - The device must be connected
-- Be sure to kill the app before pushing
+- Be sure to stop the app before pushing or pulling
 - !!! WARNING Target locations are emptied WARNING !!!
 
