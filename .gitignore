@@ -4,3 +4,4 @@ libs/scas.jar
 build.xml
 ant.properties
 local.properties
+proguard-project.txt
