@@ -46,7 +46,6 @@ import javax.script.ScriptEngine;
 import scas.application.Engine.Factory;
 import scas.MathObject;
 import scas.Graph;
-import jscl.converter.Converter;
 
 /**
  * A generic activity for editing a note in a database.  This can be used
@@ -65,7 +64,7 @@ public class NoteEditor extends Activity {
     };
     /** The index of the note column */
     private static final int COLUMN_INDEX_NOTE = 1;
-    
+
     // This is our state data that is stored when freezing.
     private static final String ORIGINAL_CONTENT = "origContent";
 
@@ -86,7 +85,6 @@ public class NoteEditor extends Activity {
     private String mOriginalContent;
 
     class Eval implements Runnable {
-        Converter converter = new Converter("mmltxt.xsl");
         ScriptEngine engine = new Factory().getScriptEngine();
         String in;
         String out;
@@ -106,7 +104,7 @@ public class NoteEditor extends Activity {
         }
 
         String apply(MathObject obj) throws Exception {
-            return converter.apply("<math>" + obj.toMathML() + "</math>");
+            return NotePad.converter.apply("<math>" + obj.toMathML() + "</math>");
         }
     }
 
@@ -277,7 +275,7 @@ public class NoteEditor extends Activity {
 
         // Set the layout for this activity.  You can find it in res/layout/note_editor.xml
         setContentView(R.layout.note_editor);
-        
+
         // The text view for our note, identified by its ID in the XML file.
         mText = (EditText) findViewById(R.id.note);
 
@@ -314,7 +312,7 @@ public class NoteEditor extends Activity {
             // etc).  This version of setText does that for us.
             String note = mCursor.getString(COLUMN_INDEX_NOTE);
             mText.setTextKeepState(note);
-            
+
             // If we hadn't previously retrieved the original text, do so
             // now.  This allows the user to revert their changes.
             if (mOriginalContent == null) {

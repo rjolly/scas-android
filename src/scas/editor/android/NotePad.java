@@ -18,12 +18,14 @@ package scas.editor.android;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
+import jscl.converter.Converter;
 
 /**
  * Convenience definitions for NotePadProvider
  */
 public final class NotePad {
     public static final String AUTHORITY = "com.google.provider.NotePad";
+    public static final Converter converter = new jscl.converter.Converter("mmltxt.xsl");
 
     // This class cannot be instantiated
     private NotePad() {}

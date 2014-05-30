@@ -112,8 +112,12 @@
 
         <activity android:name="GraphActivity" android:label="@string/title_graph" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
+        <activity android:name="Settings" android:label="@string/preferences"/>
+
     </application>
 
     <uses-sdk android:targetSdkVersion="4" android:minSdkVersion="3" />
-</manifest>
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+</manifest>

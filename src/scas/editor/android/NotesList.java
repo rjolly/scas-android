@@ -16,15 +16,22 @@
 
 package scas.editor.android;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import scas.editor.android.NotePad.Notes;
 
 import android.app.ListActivity;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -34,6 +41,13 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 
 /**
  * Displays a list of notes. Will display notes from the {@link Uri}
@@ -42,10 +56,21 @@ import android.widget.SimpleCursorAdapter;
  */
 public class NotesList extends ListActivity {
     private static final String TAG = "NotesList";
+    private static final int EXPORT_DIALOG = 1;
+    private static final int IMPORT_DIALOG = 2;
+    private final FileFilter filter = new FileFilter() {
+        public boolean accept(File file) {
+            return !file.isDirectory() && file.getName().endsWith(".txt");
+        }
+    };
+    private File dir;
 
     // Menu item ids
     public static final int MENU_ITEM_DELETE = Menu.FIRST;
     public static final int MENU_ITEM_INSERT = Menu.FIRST + 1;
+    public static final int MENU_ITEM_EXPORT = Menu.FIRST + 2;
+    public static final int MENU_ITEM_IMPORT = Menu.FIRST + 3;
+    public static final int MENU_ITEM_PREFERENCES = Menu.FIRST + 4;
 
     /**
      * The columns we are interested in from the database
@@ -53,11 +78,17 @@ public class NotesList extends ListActivity {
     private static final String[] PROJECTION = new String[] {
             Notes._ID, // 0
             Notes.TITLE, // 1
+            Notes.NOTE, // 2
+            Notes.CREATED_DATE, // 3
+            Notes.MODIFIED_DATE // 4
     };
 
-    /** The index of the title column */
+    private static final int COLUMN_INDEX_ID = 0;
     private static final int COLUMN_INDEX_TITLE = 1;
-    
+    private static final int COLUMN_INDEX_NOTE = 2;
+    private static final int COLUMN_INDEX_CREATED = 3;
+    private static final int COLUMN_INDEX_MODIFIED = 4;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,7 +104,7 @@ public class NotesList extends ListActivity {
 
         // Inform the list we provide context menus for items
         getListView().setOnCreateContextMenuListener(this);
-        
+
         // Perform a managed query. The Activity will handle closing and requerying the cursor
         // when needed.
         Cursor cursor = managedQuery(getIntent().getData(), PROJECTION, null, null,
@@ -83,6 +114,13 @@ public class NotesList extends ListActivity {
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.noteslist_item, cursor,
                 new String[] { Notes.TITLE }, new int[] { android.R.id.text1 });
         setListAdapter(adapter);
+        initialize();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        initialize();
     }
 
     @Override
@@ -94,6 +132,15 @@ public class NotesList extends ListActivity {
         menu.add(0, MENU_ITEM_INSERT, 0, R.string.menu_insert)
                 .setShortcut('3', 'a')
                 .setIcon(android.R.drawable.ic_menu_add);
+
+        menu.add(0, MENU_ITEM_EXPORT, 0, R.string.menu_export)
+                .setIcon(android.R.drawable.ic_menu_save);
+
+        menu.add(0, MENU_ITEM_IMPORT, 0, R.string.menu_import)
+                .setIcon(android.R.drawable.ic_menu_upload);
+
+        menu.add(0, MENU_ITEM_PREFERENCES, 0, R.string.menu_preferences)
+                .setIcon(android.R.drawable.ic_menu_preferences);
 
         // Generate any additional actions that can be performed on the
         // overall list.  In a normal install, there are no additional
@@ -150,9 +197,119 @@ public class NotesList extends ListActivity {
             // Launch activity to insert a new item
             startActivity(new Intent(Intent.ACTION_INSERT, getIntent().getData()));
             return true;
+        case MENU_ITEM_EXPORT:
+            showDialog(EXPORT_DIALOG);
+            return true;
+        case MENU_ITEM_IMPORT:
+            showDialog(IMPORT_DIALOG);
+            return true;
+        case MENU_ITEM_PREFERENCES:
+            editPreferences();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        switch (id) {
+            case EXPORT_DIALOG:
+                return new AlertDialog.Builder(this)
+                        .setMessage(R.string.dialog_export)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                exportNotes();
+                            }
+                        })
+                        .setNegativeButton(
+                                android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        // Noop.
+                                    }
+                        })
+                        .create();
+
+            case IMPORT_DIALOG:
+                return new AlertDialog.Builder(this)
+                        .setMessage(R.string.dialog_import)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                importNotes();
+                            }
+                        })
+                        .setNegativeButton(
+                                android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        // Noop.
+                                    }
+                        })
+                        .create();
+        }
+        return null;
+    }
+
+    public void exportNotes() {
+        final Cursor cursor = (Cursor) getListAdapter().getItem(0);
+        if (cursor == null) {
+            // For some reason the requested item isn't available, do nothing
+            return;
+        }
+        dir.mkdir();
+        for (final File file : dir.listFiles(filter)) file.delete();
+        do {
+            final int id = cursor.getInt(COLUMN_INDEX_ID);
+            final String title = cursor.getString(COLUMN_INDEX_TITLE);
+            final String text = cursor.getString(COLUMN_INDEX_NOTE);
+            final String note = text.lastIndexOf("\n") < text.length() - 1?text + "\n":text;
+            final long modified = cursor.getLong(COLUMN_INDEX_MODIFIED);
+            final String filename = title.trim() + ".txt";
+            final File file = new File(dir, filename);
+            try {
+                final Writer writer = new FileWriter(file);
+                writer.write(note, 0, note.length());
+                writer.close();
+                file.setLastModified(modified);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        } while (cursor.moveToNext());
+    }
+
+    public void importNotes() {
+        final ContentResolver resolver = getContentResolver();
+        final Uri uri = getIntent().getData();
+        resolver.delete(uri, null, null);
+        for (final File file : dir.listFiles(filter)) {
+            try {
+                final Reader reader = new FileReader(file);
+                final String note = NotePad.converter.apply(reader);
+                final String name = file.getName();
+                final String title = name.substring(0, name.lastIndexOf(".txt"));
+                final long modified = file.lastModified();
+                final ContentValues values = new ContentValues();
+                values.put(NotePad.Notes.TITLE, title);
+                values.put(NotePad.Notes.NOTE, note);
+                values.put(NotePad.Notes.CREATED_DATE, modified);
+                values.put(NotePad.Notes.MODIFIED_DATE, modified);
+                resolver.insert(uri, values);
+                reader.close();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    public void editPreferences() {
+        Intent settingsActivity = new Intent(getBaseContext(), Settings.class);
+        startActivity(settingsActivity);
+    }
+
+    public void initialize() {
+        PreferenceManager.setDefaultValues(getBaseContext(), R.xml.preferences, false);
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        final String location = prefs.getString("locationPref", "");
+        dir = new File(location);
+   }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfo) {
@@ -176,7 +333,7 @@ public class NotesList extends ListActivity {
         // Add a menu item to delete the note
         menu.add(0, MENU_ITEM_DELETE, 0, R.string.menu_delete);
     }
-        
+
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info;
@@ -201,7 +358,7 @@ public class NotesList extends ListActivity {
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         Uri uri = ContentUris.withAppendedId(getIntent().getData(), id);
-        
+
         String action = getIntent().getAction();
         if (Intent.ACTION_PICK.equals(action) || Intent.ACTION_GET_CONTENT.equals(action)) {
             // The caller is waiting for us to return a note selected by
