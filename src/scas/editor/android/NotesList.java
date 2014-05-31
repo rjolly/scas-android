@@ -18,8 +18,6 @@ package scas.editor.android;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import scas.editor.android.NotePad.Notes;
-
 import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -48,6 +46,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Map;
+import java.util.HashMap;
+import scas.editor.android.NotePad.Notes;
 
 /**
  * Displays a list of notes. Will display notes from the {@link Uri}
@@ -249,13 +250,15 @@ public class NotesList extends ListActivity {
     }
 
     public void exportNotes() {
+        final Map<String, File> map = new HashMap<String, File>();
         final Cursor cursor = (Cursor) getListAdapter().getItem(0);
         if (cursor == null) {
-            // For some reason the requested item isn't available, do nothing
             return;
         }
         dir.mkdir();
-        for (final File file : dir.listFiles(filter)) file.delete();
+        for (final File file : dir.listFiles(filter)) {
+            map.put(file.getName(), file);
+        }
         do {
             final int id = cursor.getInt(COLUMN_INDEX_ID);
             final String title = cursor.getString(COLUMN_INDEX_TITLE);
@@ -264,38 +267,90 @@ public class NotesList extends ListActivity {
             final long modified = cursor.getLong(COLUMN_INDEX_MODIFIED);
             final String filename = title.trim() + ".txt";
             final File file = new File(dir, filename);
-            try {
-                final Writer writer = new FileWriter(file);
-                writer.write(note, 0, note.length());
-                writer.close();
-                file.setLastModified(modified);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
+            if (file.exists()) {
+                final long m = file.lastModified();
+                if (modified > m) {
+                    write(file, note, modified);
+                }
+                map.remove(filename);
+            } else {
+                write(file, note, modified);
             }
         } while (cursor.moveToNext());
+        for (final File file : map.values()) file.delete();
+    }
+
+    public void write(final File file, final String note, final long modified) {
+        try {
+            final Writer writer = new FileWriter(file);
+            writer.write(note, 0, note.length());
+            writer.close();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        file.setLastModified(modified);
     }
 
     public void importNotes() {
         final ContentResolver resolver = getContentResolver();
         final Uri uri = getIntent().getData();
-        resolver.delete(uri, null, null);
+        final Map<String, ContentValues> map = new HashMap<String, ContentValues>();
+        final Cursor cursor = (Cursor) getListAdapter().getItem(0);
+        if (cursor == null) {
+            return;
+        }
+        if (dir.exists()) {
+        do {
+            final int id = cursor.getInt(COLUMN_INDEX_ID);
+            final String title = cursor.getString(COLUMN_INDEX_TITLE);
+            final long modified = cursor.getLong(COLUMN_INDEX_MODIFIED);
+            final ContentValues values = new ContentValues();
+            values.put(NotePad.Notes._ID, id);
+            values.put(NotePad.Notes.MODIFIED_DATE, modified);
+            map.put(title, values);
+        } while (cursor.moveToNext());
         for (final File file : dir.listFiles(filter)) {
-            try {
-                final Reader reader = new FileReader(file);
-                final String note = NotePad.converter.apply(reader);
-                final String name = file.getName();
-                final String title = name.substring(0, name.lastIndexOf(".txt"));
-                final long modified = file.lastModified();
+            final String name = file.getName();
+            final String title = name.substring(0, name.lastIndexOf(".txt"));
+            final long modified = file.lastModified();
+            if (map.containsKey(title)) {
+                final ContentValues values = map.get(title);
+                final long m = values.getAsLong(NotePad.Notes.MODIFIED_DATE);
+                if (modified > m) {
+                    final String note = read(file);
+                    final int id = values.getAsInteger(NotePad.Notes._ID);
+                    final Uri noteUri = ContentUris.withAppendedId(uri, id);
+                    values.put(NotePad.Notes.NOTE, note);
+                    values.put(NotePad.Notes.MODIFIED_DATE, modified);
+                    resolver.update(noteUri, values, null, null);
+                }
+                map.remove(title);
+            } else {
+                final String note = read(file);
                 final ContentValues values = new ContentValues();
                 values.put(NotePad.Notes.TITLE, title);
                 values.put(NotePad.Notes.NOTE, note);
                 values.put(NotePad.Notes.CREATED_DATE, modified);
                 values.put(NotePad.Notes.MODIFIED_DATE, modified);
                 resolver.insert(uri, values);
-                reader.close();
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
             }
+        }
+        for (final ContentValues values : map.values()) {
+            final int id = values.getAsInteger(NotePad.Notes._ID);
+            final Uri noteUri = ContentUris.withAppendedId(uri, id);
+            resolver.delete(noteUri, null, null);
+        }
+        }
+    }
+
+    public String read(final File file) {
+        try {
+            final Reader reader = new FileReader(file);
+            final String note = NotePad.converter.apply(reader);
+            reader.close();
+            return note;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
     }
 
