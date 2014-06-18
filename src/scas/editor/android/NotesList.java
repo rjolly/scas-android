@@ -259,7 +259,7 @@ public class NotesList extends ListActivity {
         for (final File file : dir.listFiles(filter)) {
             map.put(file.getName(), file);
         }
-        do {
+        if (!cursor.isAfterLast()) do {
             final int id = cursor.getInt(COLUMN_INDEX_ID);
             final String title = cursor.getString(COLUMN_INDEX_TITLE);
             final String text = cursor.getString(COLUMN_INDEX_NOTE);
@@ -300,7 +300,7 @@ public class NotesList extends ListActivity {
             return;
         }
         if (dir.exists()) {
-        do {
+        if (!cursor.isAfterLast()) do {
             final int id = cursor.getInt(COLUMN_INDEX_ID);
             final String title = cursor.getString(COLUMN_INDEX_TITLE);
             final long modified = cursor.getLong(COLUMN_INDEX_MODIFIED);

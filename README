@@ -5,23 +5,10 @@ Software needed:
 - scala 2.11 ( http://www.scala-lang.org/ )
 - scas 2.1 ( http://github.com/rjolly/scas/ )
 
-For the conduit:
-
-- Sqlite JDBC Driver ( http://www.xerial.org/maven/repository/artifact/org/xerial/sqlite-jdbc/3.7.2/sqlite-jdbc-3.7.2.jar )
-
 
 To build scas-android on android sdk:
 
   java -Dscas.home=$SCAS_HOME -Dscala.home=$SCALA_HOME -jar $ANDROID_HOME/tools/proguard/lib/proguard.jar @proguard.cfg
   android update project --name meditor --target android-8 --path .
   ant release
-
-
-To run the conduit, add the conduit directory to your path, give conduit/note_pad execution privilege (unix), then:
-
-  note_pad pull/push docs
-
-- The device must be connected
-- Be sure to stop the app before pushing or pulling
-- !!! WARNING Target locations are emptied WARNING !!!
 

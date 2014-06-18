@@ -1,3 +1,8 @@
+Changes between version 10 and version 15:
+
++ removed conduit
++ instead, added export/import function
+
 Changes between version 9 and version 10:
 
 + engine update
