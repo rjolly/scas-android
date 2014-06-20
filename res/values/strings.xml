@@ -35,6 +35,7 @@
     <string name="preferences">Edit Preferences</string>
     <string name="dialog_export">Replace current archive contents ?</string>
     <string name="dialog_import">Replace current notepad contents ?</string>
+    <string name="dialog_missing">Source directory missing</string>
 
     <string name="eval">Evaluate</string>
     <string name="app_name">meditor</string>

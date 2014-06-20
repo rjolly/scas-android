@@ -59,6 +59,7 @@ public class NotesList extends ListActivity {
     private static final String TAG = "NotesList";
     private static final int EXPORT_DIALOG = 1;
     private static final int IMPORT_DIALOG = 2;
+    private static final int MISSING_DIALOG = 3;
     private final FileFilter filter = new FileFilter() {
         public boolean accept(File file) {
             return !file.isDirectory() && file.getName().endsWith(".txt");
@@ -135,10 +136,10 @@ public class NotesList extends ListActivity {
                 .setIcon(android.R.drawable.ic_menu_add);
 
         menu.add(0, MENU_ITEM_EXPORT, 0, R.string.menu_export)
-                .setIcon(android.R.drawable.ic_menu_save);
+                .setIcon(R.drawable.ic_menu_export);
 
         menu.add(0, MENU_ITEM_IMPORT, 0, R.string.menu_import)
-                .setIcon(android.R.drawable.ic_menu_upload);
+                .setIcon(R.drawable.ic_menu_import);
 
         menu.add(0, MENU_ITEM_PREFERENCES, 0, R.string.menu_preferences)
                 .setIcon(android.R.drawable.ic_menu_preferences);
@@ -202,7 +203,7 @@ public class NotesList extends ListActivity {
             showDialog(EXPORT_DIALOG);
             return true;
         case MENU_ITEM_IMPORT:
-            showDialog(IMPORT_DIALOG);
+            showDialog(dir.exists()?IMPORT_DIALOG:MISSING_DIALOG);
             return true;
         case MENU_ITEM_PREFERENCES:
             editPreferences();
@@ -244,6 +245,11 @@ public class NotesList extends ListActivity {
                                         // Noop.
                                     }
                         })
+                        .create();
+
+            case MISSING_DIALOG:
+                return new AlertDialog.Builder(this)
+                        .setMessage(R.string.dialog_missing)
                         .create();
         }
         return null;
@@ -299,7 +305,6 @@ public class NotesList extends ListActivity {
         if (cursor == null) {
             return;
         }
-        if (dir.exists()) {
         if (!cursor.isAfterLast()) do {
             final int id = cursor.getInt(COLUMN_INDEX_ID);
             final String title = cursor.getString(COLUMN_INDEX_TITLE);
@@ -339,7 +344,6 @@ public class NotesList extends ListActivity {
             final int id = values.getAsInteger(NotePad.Notes._ID);
             final Uri noteUri = ContentUris.withAppendedId(uri, id);
             resolver.delete(noteUri, null, null);
-        }
         }
     }
 

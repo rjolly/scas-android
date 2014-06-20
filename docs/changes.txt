@@ -1,4 +1,4 @@
-Changes between version 10 and version 15:
+Changes between version 10 and version 16:
 
 + removed conduit
 + instead, added export/import function
