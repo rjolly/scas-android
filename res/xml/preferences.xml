@@ -21,4 +21,9 @@
         android:defaultValue="/mnt/sdcard/docs"
         android:title="Export/import directory"
         android:key="locationPref" />
+    <EditTextPreference
+        android:name="URL"
+        android:defaultValue="https://java.net/website/meditor/docs/android"
+        android:title="Web folder"
+        android:key="urlPref" />
 </PreferenceScreen>

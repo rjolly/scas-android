@@ -20,9 +20,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -40,14 +38,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.util.Map;
-import java.util.HashMap;
 import scas.editor.android.NotePad.Notes;
 
 /**
@@ -60,11 +50,8 @@ public class NotesList extends ListActivity {
     private static final int EXPORT_DIALOG = 1;
     private static final int IMPORT_DIALOG = 2;
     private static final int MISSING_DIALOG = 3;
-    private final FileFilter filter = new FileFilter() {
-        public boolean accept(File file) {
-            return !file.isDirectory() && file.getName().endsWith(".txt");
-        }
-    };
+    private static final int CREATE_DIALOG = 4;
+    private String url;
     private File dir;
 
     // Menu item ids
@@ -85,11 +72,7 @@ public class NotesList extends ListActivity {
             Notes.MODIFIED_DATE // 4
     };
 
-    private static final int COLUMN_INDEX_ID = 0;
     private static final int COLUMN_INDEX_TITLE = 1;
-    private static final int COLUMN_INDEX_NOTE = 2;
-    private static final int COLUMN_INDEX_CREATED = 3;
-    private static final int COLUMN_INDEX_MODIFIED = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -200,7 +183,7 @@ public class NotesList extends ListActivity {
             startActivity(new Intent(Intent.ACTION_INSERT, getIntent().getData()));
             return true;
         case MENU_ITEM_EXPORT:
-            showDialog(EXPORT_DIALOG);
+            showDialog(dir.exists()?EXPORT_DIALOG:CREATE_DIALOG);
             return true;
         case MENU_ITEM_IMPORT:
             showDialog(dir.exists()?IMPORT_DIALOG:MISSING_DIALOG);
@@ -220,7 +203,7 @@ public class NotesList extends ListActivity {
                         .setMessage(R.string.dialog_export)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                exportNotes();
+                                Storage.instance.exportNotes((Cursor)getListAdapter().getItem(0), dir);
                             }
                         })
                         .setNegativeButton(
@@ -236,7 +219,7 @@ public class NotesList extends ListActivity {
                         .setMessage(R.string.dialog_import)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                importNotes();
+                                Storage.instance.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), dir);
                             }
                         })
                         .setNegativeButton(
@@ -250,112 +233,36 @@ public class NotesList extends ListActivity {
             case MISSING_DIALOG:
                 return new AlertDialog.Builder(this)
                         .setMessage(R.string.dialog_missing)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                Storage.instance.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), url);
+                            }
+                        })
+                        .setNegativeButton(
+                                android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        // Noop.
+                                    }
+                        })
+                        .create();
+
+            case CREATE_DIALOG:
+                return new AlertDialog.Builder(this)
+                        .setMessage(R.string.dialog_create)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                Storage.instance.exportNotes((Cursor)getListAdapter().getItem(0), dir);
+                            }
+                        })
+                        .setNegativeButton(
+                                android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        // Noop.
+                                    }
+                        })
                         .create();
         }
         return null;
-    }
-
-    public void exportNotes() {
-        final Map<String, File> map = new HashMap<String, File>();
-        final Cursor cursor = (Cursor) getListAdapter().getItem(0);
-        if (cursor == null) {
-            return;
-        }
-        dir.mkdir();
-        for (final File file : dir.listFiles(filter)) {
-            map.put(file.getName(), file);
-        }
-        if (!cursor.isAfterLast()) do {
-            final int id = cursor.getInt(COLUMN_INDEX_ID);
-            final String title = cursor.getString(COLUMN_INDEX_TITLE);
-            final String text = cursor.getString(COLUMN_INDEX_NOTE);
-            final String note = text.lastIndexOf("\n") < text.length() - 1?text + "\n":text;
-            final long modified = cursor.getLong(COLUMN_INDEX_MODIFIED);
-            final String filename = title.trim() + ".txt";
-            final File file = new File(dir, filename);
-            if (file.exists()) {
-                final long m = file.lastModified();
-                if (modified > m) {
-                    write(file, note, modified);
-                }
-                map.remove(filename);
-            } else {
-                write(file, note, modified);
-            }
-        } while (cursor.moveToNext());
-        for (final File file : map.values()) file.delete();
-    }
-
-    public void write(final File file, final String note, final long modified) {
-        try {
-            final Writer writer = new FileWriter(file);
-            writer.write(note, 0, note.length());
-            writer.close();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-        file.setLastModified(modified);
-    }
-
-    public void importNotes() {
-        final ContentResolver resolver = getContentResolver();
-        final Uri uri = getIntent().getData();
-        final Map<String, ContentValues> map = new HashMap<String, ContentValues>();
-        final Cursor cursor = (Cursor) getListAdapter().getItem(0);
-        if (cursor == null) {
-            return;
-        }
-        if (!cursor.isAfterLast()) do {
-            final int id = cursor.getInt(COLUMN_INDEX_ID);
-            final String title = cursor.getString(COLUMN_INDEX_TITLE);
-            final long modified = cursor.getLong(COLUMN_INDEX_MODIFIED);
-            final ContentValues values = new ContentValues();
-            values.put(NotePad.Notes._ID, id);
-            values.put(NotePad.Notes.MODIFIED_DATE, modified);
-            map.put(title, values);
-        } while (cursor.moveToNext());
-        for (final File file : dir.listFiles(filter)) {
-            final String name = file.getName();
-            final String title = name.substring(0, name.lastIndexOf(".txt"));
-            final long modified = file.lastModified();
-            if (map.containsKey(title)) {
-                final ContentValues values = map.get(title);
-                final long m = values.getAsLong(NotePad.Notes.MODIFIED_DATE);
-                if (modified > m) {
-                    final String note = read(file);
-                    final int id = values.getAsInteger(NotePad.Notes._ID);
-                    final Uri noteUri = ContentUris.withAppendedId(uri, id);
-                    values.put(NotePad.Notes.NOTE, note);
-                    values.put(NotePad.Notes.MODIFIED_DATE, modified);
-                    resolver.update(noteUri, values, null, null);
-                }
-                map.remove(title);
-            } else {
-                final String note = read(file);
-                final ContentValues values = new ContentValues();
-                values.put(NotePad.Notes.TITLE, title);
-                values.put(NotePad.Notes.NOTE, note);
-                values.put(NotePad.Notes.CREATED_DATE, modified);
-                values.put(NotePad.Notes.MODIFIED_DATE, modified);
-                resolver.insert(uri, values);
-            }
-        }
-        for (final ContentValues values : map.values()) {
-            final int id = values.getAsInteger(NotePad.Notes._ID);
-            final Uri noteUri = ContentUris.withAppendedId(uri, id);
-            resolver.delete(noteUri, null, null);
-        }
-    }
-
-    public String read(final File file) {
-        try {
-            final Reader reader = new FileReader(file);
-            final String note = NotePad.converter.apply(reader);
-            reader.close();
-            return note;
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
     }
 
     public void editPreferences() {
@@ -367,6 +274,7 @@ public class NotesList extends ListActivity {
         PreferenceManager.setDefaultValues(getBaseContext(), R.xml.preferences, false);
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         final String location = prefs.getString("locationPref", "");
+        url = prefs.getString("urlPref", "");
         dir = new File(location);
    }
 
