@@ -46,6 +46,7 @@ import javax.script.ScriptEngine;
 import scas.application.Engine.Factory;
 import scas.MathObject;
 import scas.Graph;
+import jscl.converter.Converter;
 
 /**
  * A generic activity for editing a note in a database.  This can be used
@@ -104,7 +105,7 @@ public class NoteEditor extends Activity {
         }
 
         String apply(MathObject obj) throws Exception {
-            return NotePad.converter.apply("<math>" + obj.toMathML() + "</math>");
+            return Converter.instance("mmltxt.xsl").apply("<math>" + obj.toMathML() + "</math>");
         }
     }
 

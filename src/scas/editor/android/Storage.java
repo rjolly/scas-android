@@ -26,6 +26,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import jscl.converter.Converter;
 
 /**
  *
@@ -139,7 +140,7 @@ public class Storage {
     public String read(final File file) {
         try {
             final Reader reader = new FileReader(file);
-            final String note = NotePad.converter.apply(reader);
+            final String note = Converter.instance("mmltxt.xsl").apply(reader);
             reader.close();
             return note;
         } catch (Exception ex) {
@@ -208,7 +209,7 @@ public class Storage {
         try {
             final InputStream stream = sardine.get(url + "/" + name);
             final Reader reader = new InputStreamReader(stream);
-            final String note = NotePad.converter.apply(reader);
+            final String note = Converter.instance("mmltxt.xsl").apply(reader);
             reader.close();
             return note;
         } catch (Exception ex) {
