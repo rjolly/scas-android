@@ -23,7 +23,7 @@
         android:key="locationPref" />
     <EditTextPreference
         android:name="URL"
-        android:defaultValue="https://java.net/website/meditor/docs/android"
+        android:defaultValue="https://github.com/rjolly/meditor/raw/master/docs/android"
         android:title="Web folder"
         android:key="urlPref" />
 </PreferenceScreen>
