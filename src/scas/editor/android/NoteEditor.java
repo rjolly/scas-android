@@ -42,11 +42,12 @@ import android.widget.EditText;
 import android.widget.Scroller;
 import android.text.Selection;
 
+import java.io.StringReader;
 import javax.script.ScriptEngine;
 import scas.application.Engine.Factory;
 import scas.MathObject;
 import scas.Graph;
-import jscl.converter.Converter;
+import jscl.editor.Code;
 
 /**
  * A generic activity for editing a note in a database.  This can be used
@@ -105,7 +106,7 @@ public class NoteEditor extends Activity {
         }
 
         String apply(MathObject obj) throws Exception {
-            return Converter.instance("mmltxt.xsl").apply("<math>" + obj.toMathML() + "</math>");
+            return Code.instance("mmltxt.xsl").apply(new StringReader("<math>" + obj.toMathML() + "</math>"));
         }
     }
 
@@ -117,7 +118,7 @@ public class NoteEditor extends Activity {
 
     public static class MathEditText extends EditText implements OnGestureListener {
         Eval eval = ((NoteEditor)getContext()).new Eval();
-    	AlertDialog dialog = new AlertDialog.Builder(getContext()).setTitle(R.string.error_title).create();
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).setTitle(R.string.error_title).create();
         GestureDetector gestureDetector = new GestureDetector(getContext(), this);
         Scroller scroller = new Scroller(getContext());
         Rect drawingRect = new Rect();
@@ -210,8 +211,8 @@ public class NoteEditor extends Activity {
                         getText().replace(min, max, eval.out);
                         Selection.setSelection(getText(), getSelectionEnd());
                     } else if (eval.error != null) {
-                    	dialog.setMessage(eval.error);
-                    	dialog.show();
+                        dialog.setMessage(eval.error);
+                        dialog.show();
                     }
                     return true;
                 }
