@@ -17,7 +17,6 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import jscl.editor.Code;
 import jscl.editor.Files;
@@ -137,7 +136,6 @@ public class Storage {
         if (cursor == null) {
             return;
         }
-        final List<URL> resources = Files.list(url + "/");
         if (!cursor.isAfterLast()) do {
             final int id = cursor.getInt(COLUMN_INDEX_ID);
             final String title = cursor.getString(COLUMN_INDEX_TITLE);
@@ -147,7 +145,8 @@ public class Storage {
             values.put(NotePad.Notes.MODIFIED_DATE, modified);
             map.put(title, values);
         } while (cursor.moveToNext());
-        for (final URL res : resources) try {
+	try {
+        for (final URL res : Files.instance.list(url + "/")) {
             final String name = new File(res.getFile()).getName();
             final String title = name.substring(0, name.lastIndexOf(".txt"));
             final URLConnection conn = res.openConnection();
@@ -173,6 +172,7 @@ public class Storage {
                 values.put(NotePad.Notes.MODIFIED_DATE, modified);
                 resolver.insert(uri, values);
             }
+        }
         } catch (final IOException ex) {
             throw new RuntimeException(ex);
         }
