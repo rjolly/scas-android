@@ -9,6 +9,6 @@ Software needed:
 To build scas-android on android sdk:
 
   java -Dscas.home=$SCAS_HOME -Dscala.home=$SCALA_HOME -jar $ANDROID_HOME/tools/proguard/lib/proguard.jar @proguard.cfg
-  android update project --name meditor --target android-26 --path .
+  android update project --name meditor --target android-29 --path .
   ant release
 
