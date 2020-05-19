@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package scas.editor.android;
 
 import android.content.ContentResolver;
@@ -28,10 +22,6 @@ import java.util.List;
 import java.util.Map;
 import jscl.editor.Code;
 
-/**
- *
- * @author rjolly
- */
 public class Storage {
     public static Storage instance = new Storage();
     private static final int COLUMN_INDEX_ID = 0;
