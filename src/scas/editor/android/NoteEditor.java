@@ -42,6 +42,7 @@ import android.widget.EditText;
 import android.widget.Scroller;
 import android.text.Selection;
 
+import java.io.IOException;
 import java.io.StringReader;
 import javax.script.ScriptEngine;
 import scas.application.Engine.Factory;
@@ -85,6 +86,7 @@ public class NoteEditor extends Activity {
     private Cursor mCursor;
     private EditText mText;
     private String mOriginalContent;
+    private final Code code = Code.instance("mmltxt.xsl");
 
     class Eval implements Runnable {
         ScriptEngine engine = new Factory().getScriptEngine();
@@ -105,8 +107,8 @@ public class NoteEditor extends Activity {
             }
         }
 
-        String apply(MathObject obj) throws Exception {
-            return Code.instance("mmltxt.xsl").apply(new StringReader("<math>" + obj.toMathML() + "</math>"));
+        String apply(MathObject obj) throws IOException {
+            return code.apply(new StringReader("<math>" + obj.toMathML() + "</math>"));
         }
     }
 
