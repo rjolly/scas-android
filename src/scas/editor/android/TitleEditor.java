@@ -42,8 +42,8 @@ public class TitleEditor extends Activity implements View.OnClickListener {
      * An array of the columns we are interested in.
      */
     private static final String[] PROJECTION = new String[] {
-            NotePad.Notes._ID, // 0
-            NotePad.Notes.TITLE, // 1
+            Notes._ID, // 0
+            Notes.TITLE, // 1
     };
     /** Index of the title column */
     private static final int COLUMN_INDEX_TITLE = 1;

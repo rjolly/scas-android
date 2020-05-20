@@ -33,7 +33,6 @@ import android.net.Uri;
 import android.provider.LiveFolders;
 import android.text.TextUtils;
 import android.util.Log;
-
 import java.util.HashMap;
 
 /**
@@ -121,7 +120,7 @@ public class NotePadProvider extends ContentProvider {
         // If no sort order is specified use the default
         String orderBy;
         if (TextUtils.isEmpty(sortOrder)) {
-            orderBy = NotePad.Notes.DEFAULT_SORT_ORDER;
+            orderBy = Notes.DEFAULT_SORT_ORDER;
         } else {
             orderBy = sortOrder;
         }
@@ -167,27 +166,27 @@ public class NotePadProvider extends ContentProvider {
         Long now = Long.valueOf(System.currentTimeMillis());
 
         // Make sure that the fields are all set
-        if (values.containsKey(NotePad.Notes.CREATED_DATE) == false) {
-            values.put(NotePad.Notes.CREATED_DATE, now);
+        if (values.containsKey(Notes.CREATED_DATE) == false) {
+            values.put(Notes.CREATED_DATE, now);
         }
 
-        if (values.containsKey(NotePad.Notes.MODIFIED_DATE) == false) {
-            values.put(NotePad.Notes.MODIFIED_DATE, now);
+        if (values.containsKey(Notes.MODIFIED_DATE) == false) {
+            values.put(Notes.MODIFIED_DATE, now);
         }
 
-        if (values.containsKey(NotePad.Notes.TITLE) == false) {
+        if (values.containsKey(Notes.TITLE) == false) {
             Resources r = Resources.getSystem();
-            values.put(NotePad.Notes.TITLE, r.getString(android.R.string.untitled));
+            values.put(Notes.TITLE, r.getString(android.R.string.untitled));
         }
 
-        if (values.containsKey(NotePad.Notes.NOTE) == false) {
-            values.put(NotePad.Notes.NOTE, "");
+        if (values.containsKey(Notes.NOTE) == false) {
+            values.put(Notes.NOTE, "");
         }
 
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         long rowId = db.insert(NOTES_TABLE_NAME, Notes.NOTE, values);
         if (rowId > 0) {
-            Uri noteUri = ContentUris.withAppendedId(NotePad.Notes.CONTENT_URI, rowId);
+            Uri noteUri = ContentUris.withAppendedId(Notes.CONTENT_URI, rowId);
             getContext().getContentResolver().notifyChange(noteUri, null);
             return noteUri;
         }

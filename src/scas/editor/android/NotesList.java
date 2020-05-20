@@ -16,6 +16,8 @@
 
 package scas.editor.android;
 
+import scas.editor.android.NotePad.Notes;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
@@ -38,7 +40,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import java.io.File;
-import scas.editor.android.NotePad.Notes;
 
 /**
  * Displays a list of notes. Will display notes from the {@link Uri}
