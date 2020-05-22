@@ -1,6 +1,8 @@
 bin
 gen
 libs/scas.jar
+libs/meditor.jar
+libs/txt2xhtml.jar
 build.xml
 ant.properties
 local.properties
