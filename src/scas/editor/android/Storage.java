@@ -63,7 +63,7 @@ public class Storage {
                 write(file, note, modified);
             }
         } catch (final IOException ex) {
-            throw new RuntimeException(ex);
+            ex.printStackTrace();
         } while (cursor.moveToNext());
         for (final File file : map.values()) file.delete();
     }
@@ -115,7 +115,7 @@ public class Storage {
                 resolver.insert(uri, values);
             }
         } catch (final IOException ex) {
-            throw new RuntimeException(ex);
+            ex.printStackTrace();
         }
         for (final ContentValues values : map.values()) {
             final int id = values.getAsInteger(NotePad.Notes._ID);
@@ -125,10 +125,9 @@ public class Storage {
     }
 
     public String read(final File file) throws IOException {
-        final Reader reader = new FileReader(file);
-        final String note = code.apply(reader);
-        reader.close();
-        return note;
+        try (final Reader reader = new FileReader(file)) {
+            return code.apply(reader);
+        }
     }
 
     public void importNotes(final ContentResolver resolver, final Uri uri, final Cursor cursor, final String url) {
@@ -174,7 +173,7 @@ public class Storage {
             }
         }
         } catch (final IOException ex) {
-            throw new RuntimeException(ex);
+            ex.printStackTrace();
         }
         for (final ContentValues values : map.values()) {
             final int id = values.getAsInteger(NotePad.Notes._ID);
@@ -184,10 +183,8 @@ public class Storage {
     }
 
     public String read(final URLConnection conn) throws IOException {
-        final InputStream stream = conn.getInputStream();
-        final Reader reader = new InputStreamReader(stream);
-        final String note = code.apply(reader);
-        reader.close();
-        return note;
+        try (final Reader reader = new InputStreamReader(conn.getInputStream())) {
+            return code.apply(reader);
+        }
     }
 }
