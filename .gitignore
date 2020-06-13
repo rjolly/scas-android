@@ -1,6 +1,7 @@
 bin
 gen
 libs/scas.jar
+libs/jscl.jar
 libs/meditor.jar
 libs/rendering.jar
 libs/txt2xhtml.jar

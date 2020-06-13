@@ -24,12 +24,14 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -49,6 +51,7 @@ import scas.application.Engine.Factory;
 import scas.MathObject;
 import scas.Graph;
 import jscl.editor.Code;
+import jscl.engine.EngineFactory;
 
 /**
  * A generic activity for editing a note in a database.  This can be used
@@ -88,11 +91,30 @@ public class NoteEditor extends Activity {
     private String mOriginalContent;
     private final Code code = Code.instance("mmltxt.xsl");
 
-    class Eval implements Runnable {
+    class EvalJSCL extends Eval {
+        ScriptEngine engine = new EngineFactory().getScriptEngine();
+
+        public void run() {
+            try {
+                Object obj = engine.eval(in);
+                if (obj instanceof jscl.math.Graph) {
+                    final jscl.math.Graph graph = (jscl.math.Graph)obj;
+                    start(new Graph(null) {
+                        public double apply(double value) {
+                            return graph.apply(value);
+                        }
+                    });
+                } else {
+                    out = obj.toString();
+                }
+            } catch (Throwable e) {
+                error = e.getMessage();
+            }
+        }
+    }
+
+    class EvalScAS extends Eval {
         ScriptEngine engine = new Factory().getScriptEngine();
-        String in;
-        String out;
-        String error;
 
         public void run() {
             try {
@@ -118,8 +140,15 @@ public class NoteEditor extends Activity {
         startActivity(intent);
     }
 
+    public Eval getEval() {
+        PreferenceManager.setDefaultValues(getBaseContext(), R.xml.preferences, false);
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        final int id = Integer.parseInt(prefs.getString("enginePref", "0"));
+        return id == 0?new EvalScAS():new EvalJSCL();
+    }
+
     public static class MathEditText extends EditText implements OnGestureListener {
-        Eval eval = ((NoteEditor)getContext()).new Eval();
+        Eval eval = ((NoteEditor)getContext()).getEval();
         AlertDialog dialog = new AlertDialog.Builder(getContext()).setTitle(R.string.error_title).create();
         GestureDetector gestureDetector = new GestureDetector(getContext(), this);
         Scroller scroller = new Scroller(getContext());

@@ -26,4 +26,10 @@
         android:defaultValue="https://github.com/rjolly/meditor/raw/master/docs/android"
         android:title="Web folder"
         android:key="urlPref" />
+    <ListPreference 
+        android:key="enginePref"
+        android:title="Engine"
+        android:entries="@array/EngineName"
+        android:entryValues="@array/EngineId"
+        android:defaultValue="0" />
 </PreferenceScreen>
