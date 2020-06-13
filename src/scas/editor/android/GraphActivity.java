@@ -1,6 +1,5 @@
 package scas.editor.android;
 
-import scas.Graph;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -18,21 +17,22 @@ import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener;
 import android.view.View;
 import android.widget.Scroller;
+import jscl.editor.rendering.Plot;
 
 public class GraphActivity extends Activity {
-    Graph graph;
+    Plot graph;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final Intent intent = getIntent();
-        graph = (Graph)intent.getSerializableExtra(getPackageName() + ".graph");
+        graph = (Plot)intent.getSerializableExtra(getPackageName() + ".graph");
         setContentView(R.layout.graph);
     }
 
     public static class GraphView extends View {
         Scroller scroller = new Scroller(getContext());
-        Graph graph = ((GraphActivity)getContext()).graph;
+        Plot graph = ((GraphActivity)getContext()).graph;
         Paint paint = new Paint();
         Paint red = new Paint();
         int w = getWidth();

@@ -51,6 +51,7 @@ import scas.application.Engine.Factory;
 import scas.MathObject;
 import scas.Graph;
 import jscl.editor.Code;
+import jscl.editor.rendering.Plot;
 import jscl.engine.EngineFactory;
 
 /**
@@ -97,13 +98,8 @@ public class NoteEditor extends Activity {
         public void run() {
             try {
                 Object obj = engine.eval(in);
-                if (obj instanceof jscl.math.Graph) {
-                    final jscl.math.Graph graph = (jscl.math.Graph)obj;
-                    start(new Graph(null) {
-                        public double apply(double value) {
-                            return graph.apply(value);
-                        }
-                    });
+                if (obj instanceof Plot) {
+                    start((Plot)obj);
                 } else {
                     out = obj.toString();
                 }
@@ -120,7 +116,12 @@ public class NoteEditor extends Activity {
             try {
                 Object obj = engine.eval(in);
                 if (obj instanceof Graph) {
-                    start((Graph)obj);
+                    final Graph graph = (Graph)obj;
+                    start(new Plot() {
+                        public double apply(double value) {
+                            return graph.apply(value);
+                        }
+                    });
                 } else if (obj instanceof MathObject) {
                     out = apply((MathObject)obj);
                 }
@@ -134,7 +135,7 @@ public class NoteEditor extends Activity {
         }
     }
 
-    public void start(Graph graph) {
+    public void start(Plot graph) {
         final Intent intent = new Intent(this, GraphActivity.class);
         intent.putExtra(getPackageName() + ".graph", graph);
         startActivity(intent);
