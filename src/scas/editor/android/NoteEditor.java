@@ -49,7 +49,6 @@ import java.io.StringReader;
 import javax.script.ScriptEngine;
 import scas.application.Engine.Factory;
 import scas.MathObject;
-import scas.Graph;
 import jscl.editor.Code;
 import jscl.editor.rendering.Plot;
 import jscl.engine.EngineFactory;
@@ -115,13 +114,8 @@ public class NoteEditor extends Activity {
         public void run() {
             try {
                 Object obj = engine.eval(in);
-                if (obj instanceof Graph) {
-                    final Graph graph = (Graph)obj;
-                    start(new Plot() {
-                        public double apply(double value) {
-                            return graph.apply(value);
-                        }
-                    });
+                if (obj instanceof Plot) {
+                    start((Plot)obj);
                 } else if (obj instanceof MathObject) {
                     out = apply((MathObject)obj);
                 }
