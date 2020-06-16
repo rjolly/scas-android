@@ -256,7 +256,10 @@ public class NoteEditor extends Activity {
             switch (id) {
 
                 case ID_EVAL:
-                    eval.in = getText().subSequence(min, max).toString();
+                    final String data = getText().subSequence(min, max).toString();
+                    final int n = data.length();
+                    final boolean newline = n > 0 && "\n".equals(data.substring(n - 1));
+                    eval.in = data;
                     eval.out = null;
                     eval.error = null;
                     Thread t0 = Thread.currentThread();
@@ -266,7 +269,7 @@ public class NoteEditor extends Activity {
                         t.join();
                     } catch (InterruptedException e) {}
                     if (eval.out != null && eval.out.length() > 0) {
-                        getText().replace(min, max, eval.out);
+                        getText().replace(newline?max:min, max, eval.out);
                         Selection.setSelection(getText(), getSelectionEnd());
                     } else if (eval.error != null) {
                         dialog.setMessage(eval.error);
