@@ -14,6 +14,7 @@ To build scas-android on android sdk:
   cp $SCAS_HOME/../meditor/dist/meditor.jar libs/
   cp $SCAS_HOME/../meditor/txt2xhtml/dist/txt2xhtml.jar libs/
   cp $SCAS_HOME/../meditor/rendering/dist/rendering.jar libs/
+  ln -s $HOME/lib/bsh-2.0b5.jar libs/bsh.jar
   android update project --name meditor --target android-29 --path .
   ant release
 

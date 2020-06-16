@@ -3,9 +3,11 @@
 <string-array name="EngineName">
     <item>ScAS</item>
     <item>JSCL</item>
+    <item>BeanShell</item>
 </string-array>
 <string-array name="EngineId">
     <item>0</item>
     <item>1</item>
+    <item>2</item>
 </string-array>
 </resources>

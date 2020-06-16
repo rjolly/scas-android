@@ -48,10 +48,11 @@ import java.io.IOException;
 import java.io.StringReader;
 import javax.script.ScriptEngine;
 import scas.application.Engine.Factory;
-import scas.MathObject;
 import jscl.editor.Code;
+import jscl.editor.rendering.MathObject;
 import jscl.editor.rendering.Plot;
 import jscl.engine.EngineFactory;
+import bsh.engine.BshScriptEngineFactory;
 
 /**
  * A generic activity for editing a note in a database.  This can be used
@@ -89,7 +90,30 @@ public class NoteEditor extends Activity {
     private Cursor mCursor;
     private EditText mText;
     private String mOriginalContent;
-    private final Code code = Code.instance("mmltxt.xsl");
+
+    class EvalBsh extends Eval {
+        ScriptEngine engine = new BshScriptEngineFactory().getScriptEngine();
+        Code code = Code.instance("mmljava.xsl");
+
+        public void run() {
+            try {
+                Object obj = engine.eval(in);
+                if (obj instanceof Plot) {
+                    start((Plot)obj);
+                } else if (obj instanceof MathObject) {
+                    out = apply((MathObject)obj);
+                } else {
+                    out = obj.toString();
+                }
+            } catch (Throwable e) {
+                error = e.getMessage();
+            }
+        }
+
+        String apply(MathObject obj) throws IOException {
+            return code.apply(new StringReader("<math>" + obj.toMathML() + "</math>"));
+        }
+    }
 
     class EvalJSCL extends Eval {
         ScriptEngine engine = new EngineFactory().getScriptEngine();
@@ -110,21 +134,22 @@ public class NoteEditor extends Activity {
 
     class EvalScAS extends Eval {
         ScriptEngine engine = new Factory().getScriptEngine();
+        Code code = Code.instance("mmltxt.xsl");
 
         public void run() {
             try {
                 Object obj = engine.eval(in);
                 if (obj instanceof Plot) {
                     start((Plot)obj);
-                } else if (obj instanceof MathObject) {
-                    out = apply((MathObject)obj);
+                } else if (obj instanceof scas.MathObject) {
+                    out = apply((scas.MathObject)obj);
                 }
             } catch (Throwable e) {
                 error = e.getMessage();
             }
         }
 
-        String apply(MathObject obj) throws IOException {
+        String apply(scas.MathObject obj) throws IOException {
             return code.apply(new StringReader("<math>" + obj.toMathML() + "</math>"));
         }
     }
@@ -139,7 +164,14 @@ public class NoteEditor extends Activity {
         PreferenceManager.setDefaultValues(getBaseContext(), R.xml.preferences, false);
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         final int id = Integer.parseInt(prefs.getString("enginePref", "0"));
-        return id == 0?new EvalScAS():new EvalJSCL();
+        switch(id) {
+        case 1:
+            return new EvalJSCL();
+        case 2:
+            return new EvalBsh();
+        default:
+            return new EvalScAS();
+        }
     }
 
     public static class MathEditText extends EditText implements OnGestureListener {

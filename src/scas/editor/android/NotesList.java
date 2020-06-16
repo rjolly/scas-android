@@ -39,6 +39,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import jscl.editor.Code;
 import java.io.File;
 
 /**
@@ -54,6 +55,7 @@ public class NotesList extends ListActivity {
     private static final int CREATE_DIALOG = 4;
     private String url;
     private File dir;
+    private Code code;
 
     // Menu item ids
     public static final int MENU_ITEM_DELETE = Menu.FIRST;
@@ -220,7 +222,7 @@ public class NotesList extends ListActivity {
                         .setMessage(R.string.dialog_import)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                Storage.instance.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), dir);
+                                Storage.instance.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), dir, code);
                             }
                         })
                         .setNegativeButton(
@@ -236,7 +238,7 @@ public class NotesList extends ListActivity {
                         .setMessage(R.string.dialog_missing)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                Storage.instance.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), url);
+                                Storage.instance.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), url, code);
                             }
                         })
                         .setNegativeButton(
@@ -275,8 +277,17 @@ public class NotesList extends ListActivity {
         PreferenceManager.setDefaultValues(getBaseContext(), R.xml.preferences, false);
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         final String location = prefs.getString("locationPref", "");
+        final int id = Integer.parseInt(prefs.getString("enginePref", "0"));
         url = prefs.getString("urlPref", "");
         dir = new File(location);
+        switch(id) {
+        case 0:
+        case 1:
+            code = Code.instance("mmltxt.xsl");
+            break;
+        case 2:
+            code = Code.instance("mmljava.xsl");
+        }
    }
 
     @Override

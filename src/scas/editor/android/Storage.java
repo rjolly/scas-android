@@ -32,7 +32,6 @@ public class Storage {
             return !file.isDirectory() && file.getName().endsWith(".txt");
         }
     };
-    private final Code code = Code.instance("mmltxt.xsl");
 
     private Storage() {}
 
@@ -75,7 +74,7 @@ public class Storage {
         file.setLastModified(modified);
     }
 
-    public void importNotes(final ContentResolver resolver, final Uri uri, final Cursor cursor, final File dir) {
+    public void importNotes(final ContentResolver resolver, final Uri uri, final Cursor cursor, final File dir, final Code code) {
         final Map<String, ContentValues> map = new HashMap<String, ContentValues>();
         if (cursor == null) {
             return;
@@ -97,7 +96,7 @@ public class Storage {
                 final ContentValues values = map.get(title);
                 final long m = values.getAsLong(NotePad.Notes.MODIFIED_DATE);
                 if (modified > m) {
-                    final String note = read(file);
+                    final String note = read(file, code);
                     final int id = values.getAsInteger(NotePad.Notes._ID);
                     final Uri noteUri = ContentUris.withAppendedId(uri, id);
                     values.put(NotePad.Notes.NOTE, note);
@@ -106,7 +105,7 @@ public class Storage {
                 }
                 map.remove(title);
             } else {
-                final String note = read(file);
+                final String note = read(file, code);
                 final ContentValues values = new ContentValues();
                 values.put(NotePad.Notes.TITLE, title);
                 values.put(NotePad.Notes.NOTE, note);
@@ -124,13 +123,13 @@ public class Storage {
         }
     }
 
-    public String read(final File file) throws IOException {
+    public String read(final File file, final Code code) throws IOException {
         try (final Reader reader = new FileReader(file)) {
             return code.apply(reader);
         }
     }
 
-    public void importNotes(final ContentResolver resolver, final Uri uri, final Cursor cursor, final String url) {
+    public void importNotes(final ContentResolver resolver, final Uri uri, final Cursor cursor, final String url, final Code code) {
         final Map<String, ContentValues> map = new HashMap<String, ContentValues>();
         if (cursor == null) {
             return;
@@ -154,7 +153,7 @@ public class Storage {
                 final ContentValues values = map.get(title);
                 final long m = values.getAsLong(NotePad.Notes.MODIFIED_DATE);
                 if (modified > m) {
-                    final String note = read(conn);
+                    final String note = read(conn, code);
                     final int id = values.getAsInteger(NotePad.Notes._ID);
                     final Uri noteUri = ContentUris.withAppendedId(uri, id);
                     values.put(NotePad.Notes.NOTE, note);
@@ -163,7 +162,7 @@ public class Storage {
                 }
                 map.remove(title);
             } else {
-                final String note = read(conn);
+                final String note = read(conn, code);
                 final ContentValues values = new ContentValues();
                 values.put(NotePad.Notes.TITLE, title);
                 values.put(NotePad.Notes.NOTE, note);
@@ -182,7 +181,7 @@ public class Storage {
         }
     }
 
-    public String read(final URLConnection conn) throws IOException {
+    public String read(final URLConnection conn, final Code code) throws IOException {
         try (final Reader reader = new InputStreamReader(conn.getInputStream())) {
             return code.apply(reader);
         }
