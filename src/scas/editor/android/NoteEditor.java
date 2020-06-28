@@ -141,15 +141,15 @@ public class NoteEditor extends Activity {
                 Object obj = engine.eval(in);
                 if (obj instanceof Plot) {
                     start((Plot)obj);
-                } else if (obj instanceof scas.MathObject) {
-                    out = apply((scas.MathObject)obj);
+                } else if (obj instanceof MathObject) {
+                    out = apply((MathObject)obj);
                 }
             } catch (Throwable e) {
                 error = e.getMessage();
             }
         }
 
-        String apply(scas.MathObject obj) throws IOException {
+        String apply(MathObject obj) throws IOException {
             return code.apply(new StringReader("<math>" + obj.toMathML() + "</math>"));
         }
     }
