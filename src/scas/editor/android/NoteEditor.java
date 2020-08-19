@@ -34,12 +34,13 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.ContextMenu;
+import android.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.GestureDetector;
-import android.view.GestureDetector.OnGestureListener;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.Scroller;
 import android.text.Selection;
@@ -174,7 +175,7 @@ public class NoteEditor extends Activity {
         }
     }
 
-    public static class MathEditText extends EditText implements OnGestureListener {
+    public static class MathEditText extends EditText implements GestureDetector.OnGestureListener, ActionMode.Callback {
         Eval eval = ((NoteEditor)getContext()).getEval();
         AlertDialog dialog = new AlertDialog.Builder(getContext()).setTitle(R.string.error_title).create();
         GestureDetector gestureDetector = new GestureDetector(getContext(), this);
@@ -185,6 +186,7 @@ public class NoteEditor extends Activity {
 
         public MathEditText(Context context, AttributeSet attrs) {
             super(context, attrs);
+            setCustomSelectionActionModeCallback(this);
         }
 
         @Override
@@ -229,19 +231,29 @@ public class NoteEditor extends Activity {
             return true;
         }
 
-        @Override
-        protected void onCreateContextMenu(ContextMenu menu) {
-            MathMenuHandler handler = new MathMenuHandler();
-            if (canEval()) {
-                menu.add(0, ID_EVAL, 0, R.string.eval).
-                     setOnMenuItemClickListener(handler).
-                     setAlphabeticShortcut('e');
+        private static final int ID_EVAL = R.id.eval;
+
+        private boolean canEval() {
+            if (getText().length() > 0 && hasSelection()) {
+                return true;
             }
-            super.onCreateContextMenu(menu);
+            return false;
         }
 
-        @Override
-        public boolean onTextContextMenuItem(int id) {
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.math, menu);
+            return true;
+        }
+
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            MenuItem item = menu.findItem(ID_EVAL);
+            item.setEnabled(canEval());
+            return true;
+        }
+
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            int id = item.getItemId();
             int min = 0;
             int max = getText().length();
 
@@ -254,7 +266,6 @@ public class NoteEditor extends Activity {
             }
 
             switch (id) {
-
                 case ID_EVAL:
                     final String data = getText().subSequence(min, max).toString();
                     final int n = data.length();
@@ -278,22 +289,10 @@ public class NoteEditor extends Activity {
                     return true;
                 }
 
-            return super.onTextContextMenuItem(id);
-        }
-
-        private static final int ID_EVAL = R.id.eval;
-
-        private boolean canEval() {
-            if (getText().length() > 0 && hasSelection()) {
-                return true;
-            }
             return false;
         }
 
-        private class MathMenuHandler implements MenuItem.OnMenuItemClickListener {
-            public boolean onMenuItemClick(MenuItem item) {
-                return onTextContextMenuItem(item.getItemId());
-            }
+        public void onDestroyActionMode(ActionMode mode) {
         }
     }
 
@@ -335,6 +334,7 @@ public class NoteEditor extends Activity {
             finish();
             return;
         }
+        requestWindowFeature(Window.FEATURE_ACTION_BAR);
 
         // Set the layout for this activity.  You can find it in res/layout/note_editor.xml
         setContentView(R.layout.note_editor);
