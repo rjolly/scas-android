@@ -268,12 +268,14 @@ public class NoteEditor extends Activity {
                     try {
                         t.join();
                     } catch (InterruptedException e) {}
-                    if (eval.out != null && eval.out.length() > 0) {
-                        getText().replace(newline?max:min, max, eval.out);
-                        Selection.setSelection(getText(), getSelectionEnd());
-                    } else if (eval.error != null) {
+                    if (eval.error != null) {
                         dialog.setMessage(eval.error);
                         dialog.show();
+                    } else {
+                        if (eval.out != null && eval.out.length() > 0) {
+                            getText().replace(newline?max:min, max, eval.out);
+                        }
+                        Selection.setSelection(getText(), getSelectionEnd());
                     }
                     return true;
                 }
