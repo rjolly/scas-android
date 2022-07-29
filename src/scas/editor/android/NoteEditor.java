@@ -44,13 +44,10 @@ import android.widget.EditText;
 import android.widget.Scroller;
 import android.text.Selection;
 
-import java.io.IOException;
-import java.io.StringReader;
-import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
 import scas.application.Engine.Factory;
 import jscl.editor.Code;
 import jscl.editor.rendering.MathObject;
-import jscl.editor.rendering.Plot;
 import jscl.engine.EngineFactory;
 import bsh.engine.BshScriptEngineFactory;
 
@@ -91,74 +88,9 @@ public class NoteEditor extends Activity {
     private EditText mText;
     private String mOriginalContent;
 
-    class EvalBsh extends Eval {
-        ScriptEngine engine = new BshScriptEngineFactory().getScriptEngine();
-        Code code = Code.instance("mmljava.xsl");
-
-        public void run() {
-            try {
-                Object obj = engine.eval(in);
-                if (obj instanceof Plot) {
-                    start((Plot)obj);
-                } else if (obj instanceof MathObject) {
-                    out = apply((MathObject)obj);
-                } else {
-                    out = obj.toString();
-                }
-            } catch (Throwable e) {
-                error = e.getMessage();
-            }
-        }
-
-        String apply(MathObject obj) throws IOException {
-            return code.apply(new StringReader("<math>" + obj.toMathML() + "</math>"));
-        }
-    }
-
-    class EvalJSCL extends Eval {
-        ScriptEngine engine = new EngineFactory().getScriptEngine();
-
-        public void run() {
-            try {
-                Object obj = engine.eval(in);
-                if (obj instanceof Plot) {
-                    start((Plot)obj);
-                } else {
-                    out = obj.toString();
-                }
-            } catch (Throwable e) {
-                error = e.getMessage();
-            }
-        }
-    }
-
-    class EvalScAS extends Eval {
-        ScriptEngine engine = new Factory().getScriptEngine();
-        Code code = Code.instance("mmltxt.xsl");
-
-        public void run() {
-            try {
-                Object obj = engine.eval(in);
-                if (obj instanceof Plot) {
-                    start((Plot)obj);
-                } else if (obj instanceof MathObject) {
-                    out = apply((MathObject)obj);
-                }
-            } catch (Throwable e) {
-                error = e.getMessage();
-            }
-        }
-
-        String apply(MathObject obj) throws IOException {
-            return code.apply(new StringReader("<math>" + obj.toMathML() + "</math>"));
-        }
-    }
-
-    public void start(Plot graph) {
-        final Intent intent = new Intent(this, GraphActivity.class);
-        intent.putExtra(getPackageName() + ".graph", graph);
-        startActivity(intent);
-    }
+    private ScriptEngineFactory bsh = new BshScriptEngineFactory();
+    private ScriptEngineFactory jscl = new EngineFactory();
+    private ScriptEngineFactory factory = new Factory();
 
     public Eval getEval() {
         PreferenceManager.setDefaultValues(getBaseContext(), R.xml.preferences, false);
@@ -166,11 +98,19 @@ public class NoteEditor extends Activity {
         final int id = Integer.parseInt(prefs.getString("enginePref", "0"));
         switch(id) {
         case 1:
-            return new EvalJSCL();
+            return new Eval(jscl, null, NoteEditor.this) {
+                String apply(MathObject obj) {
+                    return obj.toString();
+                }
+            };
         case 2:
-            return new EvalBsh();
+            return new Eval(bsh, Code.instance("mmljava.xsl"), NoteEditor.this);
         default:
-            return new EvalScAS();
+            return new Eval(factory, Code.instance("mmltxt.xsl"), NoteEditor.this) {
+                String apply(Object obj) {
+                    return null;
+                }
+            };
         }
     }
 
@@ -269,10 +209,10 @@ public class NoteEditor extends Activity {
                         t.join();
                     } catch (InterruptedException e) {}
                     if (eval.error != null) {
-                        dialog.setMessage(eval.error);
+                        dialog.setMessage(eval.error.getMessage());
                         dialog.show();
                     } else {
-                        if (eval.out != null && eval.out.length() > 0) {
+                        if (eval.out != null && !eval.out.isEmpty()) {
                             getText().replace(newline?max:min, max, eval.out);
                         }
                         Selection.setSelection(getText(), getSelectionEnd());
