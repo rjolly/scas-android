@@ -1,5 +1,7 @@
 package scas.editor.android;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -22,7 +24,6 @@ import jscl.editor.Code;
 import jscl.editor.Files;
 
 public class Storage {
-    public static Storage instance = new Storage();
     private static final int COLUMN_INDEX_ID = 0;
     private static final int COLUMN_INDEX_TITLE = 1;
     private static final int COLUMN_INDEX_NOTE = 2;
@@ -32,8 +33,11 @@ public class Storage {
             return !file.isDirectory() && file.getName().endsWith(".txt");
         }
     };
+    private AlertDialog dialog;
 
-    private Storage() {}
+    Storage(final Activity activity) {
+        dialog = new AlertDialog.Builder(activity).setMessage(R.string.dialog_permission).create();
+    }
 
     public void exportNotes(final Cursor cursor, final File dir) {
         final Map<String, File> map = new HashMap<String, File>();
@@ -41,7 +45,11 @@ public class Storage {
             return;
         }
         dir.mkdir();
-        for (final File file : dir.listFiles(filter)) {
+        final File files[] = dir.listFiles(filter);
+        if (files == null) {
+            dialog.show();
+        } else {
+        for (final File file : files) {
             map.put(file.getName(), file);
         }
         if (!cursor.isAfterLast()) do try {
@@ -65,6 +73,7 @@ public class Storage {
             ex.printStackTrace();
         } while (cursor.moveToNext());
         for (final File file : map.values()) file.delete();
+        }
     }
 
     public void write(final File file, final String note, final long modified) throws IOException {
@@ -88,7 +97,11 @@ public class Storage {
             values.put(NotePad.Notes.MODIFIED_DATE, modified);
             map.put(title, values);
         } while (cursor.moveToNext());
-        for (final File file : dir.listFiles(filter)) try {
+        final File files[] = dir.listFiles(filter);
+        if (files == null) {
+            dialog.show();
+        } else {
+        for (final File file : files) try {
             final String name = file.getName();
             final String title = name.substring(0, name.lastIndexOf(".txt"));
             final long modified = file.lastModified();
@@ -121,6 +134,7 @@ public class Storage {
             final Uri noteUri = ContentUris.withAppendedId(uri, id);
             resolver.delete(noteUri, null, null);
         }
+        }
     }
 
     public String read(final File file, final Code code) throws IOException {
@@ -143,6 +157,8 @@ public class Storage {
             values.put(NotePad.Notes.MODIFIED_DATE, modified);
             map.put(title, values);
         } while (cursor.moveToNext());
+        Thread t = new Thread() {
+            public void run() {
 	try {
         for (final URL res : Files.instance.list(url + "/")) {
             final String name = new File(res.getFile()).getName();
@@ -174,6 +190,12 @@ public class Storage {
         } catch (final IOException ex) {
             ex.printStackTrace();
         }
+            }
+        };
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {}
         for (final ContentValues values : map.values()) {
             final int id = values.getAsInteger(NotePad.Notes._ID);
             final Uri noteUri = ContentUris.withAppendedId(uri, id);

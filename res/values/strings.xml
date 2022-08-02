@@ -33,6 +33,7 @@
     <string name="title_edit_title">Note title:</string>
     <string name="title_graph">Graph</string>
     <string name="preferences">Edit Preferences</string>
+    <string name="dialog_permission">You need to set the Storage permission.</string>
     <string name="dialog_export">Replace current directory contents ?</string>
     <string name="dialog_import">Replace current notepad contents ?</string>
     <string name="dialog_missing">Source directory missing. Import from web ?</string>

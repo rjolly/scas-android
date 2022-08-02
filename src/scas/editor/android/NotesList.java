@@ -56,6 +56,7 @@ public class NotesList extends ListActivity {
     private String url;
     private File dir;
     private Code code;
+    private Storage storage;
 
     // Menu item ids
     public static final int MENU_ITEM_DELETE = Menu.FIRST;
@@ -206,7 +207,7 @@ public class NotesList extends ListActivity {
                         .setMessage(R.string.dialog_export)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                Storage.instance.exportNotes((Cursor)getListAdapter().getItem(0), dir);
+                                storage.exportNotes((Cursor)getListAdapter().getItem(0), dir);
                             }
                         })
                         .setNegativeButton(
@@ -222,7 +223,7 @@ public class NotesList extends ListActivity {
                         .setMessage(R.string.dialog_import)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                Storage.instance.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), dir, code);
+                                storage.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), dir, code);
                             }
                         })
                         .setNegativeButton(
@@ -238,7 +239,7 @@ public class NotesList extends ListActivity {
                         .setMessage(R.string.dialog_missing)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                Storage.instance.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), url, code);
+                                storage.importNotes(getContentResolver(), getIntent().getData(), (Cursor)getListAdapter().getItem(0), url, code);
                             }
                         })
                         .setNegativeButton(
@@ -254,7 +255,7 @@ public class NotesList extends ListActivity {
                         .setMessage(R.string.dialog_create)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                Storage.instance.exportNotes((Cursor)getListAdapter().getItem(0), dir);
+                                storage.exportNotes((Cursor)getListAdapter().getItem(0), dir);
                             }
                         })
                         .setNegativeButton(
@@ -288,6 +289,7 @@ public class NotesList extends ListActivity {
         case 2:
             code = Code.instance("mmljava.xsl");
         }
+        storage = new Storage(this);
    }
 
     @Override
