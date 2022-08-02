@@ -20,7 +20,7 @@
      own application, the package name must be changed from "com.example.*"
      to come from a domain that you own or have control over. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="40"
+    android:versionCode="44"
     android:versionName="1.0"
     package="scas.editor.android"
 >
@@ -31,7 +31,7 @@
             android:authorities="com.google.provider.NotePad"
         />
 
-        <activity android:name="NotesList" android:label="@string/title_notes_list">
+        <activity android:name="NotesList" android:label="@string/title_notes_list" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -55,6 +55,7 @@
             android:label="@string/title_note"
             android:screenOrientation="sensor"
             android:configChanges="keyboardHidden|orientation"
+            android:exported="false"
         >
             <!-- This filter says that we can view or edit the data of
                  a single note -->
@@ -79,7 +80,8 @@
         <activity android:name="TitleEditor"
             android:label="@string/title_edit_title"
             android:theme="@android:style/Theme.Dialog"
-            android:windowSoftInputMode="stateVisible">
+            android:windowSoftInputMode="stateVisible"
+            android:exported="false">
             <!-- This activity implements an alternative action that can be
                  performed on notes: editing their title.  It can be used as
                  a default operation if the user invokes this action, and is
@@ -103,7 +105,7 @@
         </activity>
 
         <activity android:name="NotesLiveFolder" android:label="@string/live_folder_name"
-            android:icon="@drawable/live_folder_notes">
+            android:icon="@drawable/live_folder_notes" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_LIVE_FOLDER" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -116,7 +118,7 @@
 
     </application>
 
-    <uses-sdk android:targetSdkVersion="29" android:minSdkVersion="11" />
+    <uses-sdk android:targetSdkVersion="31" android:minSdkVersion="11" />
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"></uses-permission>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
