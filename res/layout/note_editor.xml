@@ -15,7 +15,7 @@
 -->
 
 <view xmlns:android="http://schemas.android.com/apk/res/android"
-    class="scas.editor.android.NoteEditor$MathEditText"
+    class="scas.editor.android.MathEditText"
     android:id="@+id/note"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
