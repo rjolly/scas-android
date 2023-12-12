@@ -8,7 +8,7 @@ Software needed:
 
 To build scas-android on android sdk:
 
-  java -Dscas.home=$SCAS_HOME -Dscala.home=$SCALA_HOME -jar $ANDROID_HOME/tools/proguard/lib/proguard.jar @proguard.cfg
+  java -Dscas.home=$SCAS_HOME -Dscala.home=$SCALA_HOME -jar /usr/share/java/proguard.jar @proguard.cfg
   cp $SCAS_HOME/../jscl/dist/jscl.jar libs/
   remove jscl/editor/Editor.properties from libs/jscl.jar
   cp $SCAS_HOME/../meditor/dist/meditor.jar libs/
