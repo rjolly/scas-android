@@ -106,33 +106,32 @@ public class MathEditText extends EditText implements GestureDetector.OnGestureL
 			max = Math.max(0, Math.max(selStart, selEnd));
 		}
 
-		switch (id) {
-			case ID_EVAL:
-				final String data = getText().subSequence(min, max).toString();
-				final int n = data.length();
-				final boolean newline = n > 0 && "\n".equals(data.substring(n - 1));
-				eval.in = data;
-				eval.out = null;
-				eval.error = null;
-				Thread t0 = Thread.currentThread();
-				Thread t = new Thread(t0.getThreadGroup(), eval, t0.getName(), 16384l);
-				t.start();
-				try {
-					t.join();
-				} catch (InterruptedException e) {}
-				if (eval.error != null) {
-					dialog.setMessage(eval.error.getMessage());
-					dialog.show();
-				} else {
-					if (eval.out != null && !eval.out.isEmpty()) {
-						getText().replace(newline?max:min, max, eval.out);
-					}
-					Selection.setSelection(getText(), getSelectionEnd());
+		if (id == ID_EVAL) {
+			final String data = getText().subSequence(min, max).toString();
+			final int n = data.length();
+			final boolean newline = n > 0 && "\n".equals(data.substring(n - 1));
+			eval.in = data;
+			eval.out = null;
+			eval.error = null;
+			Thread t0 = Thread.currentThread();
+			Thread t = new Thread(t0.getThreadGroup(), eval, t0.getName(), 16384l);
+			t.start();
+			try {
+				t.join();
+			} catch (InterruptedException e) {}
+			if (eval.error != null) {
+				dialog.setMessage(eval.error.getMessage());
+				dialog.show();
+			} else {
+				if (eval.out != null && !eval.out.isEmpty()) {
+					getText().replace(newline?max:min, max, eval.out);
 				}
-				return true;
+				Selection.setSelection(getText(), getSelectionEnd());
 			}
-
-		return false;
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public void onDestroyActionMode(ActionMode mode) {

@@ -34,7 +34,7 @@ import android.view.Window;
 import android.widget.EditText;
 
 import javax.script.ScriptEngineFactory;
-import scas.application.Engine.Factory;
+import scas.scripting.Engine.Factory;
 import jscl.editor.Code;
 import jscl.editor.rendering.MathObject;
 import jscl.engine.EngineFactory;

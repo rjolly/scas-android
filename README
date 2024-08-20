@@ -2,19 +2,19 @@
 Software needed:
 
 - Android SDK ( http://developer.android.com/sdk/ )
-- scala 2.11 ( http://www.scala-lang.org/ )
-- scas 2.1 ( http://github.com/rjolly/scas2/ )
+- gradle 8.10 ( https://gradle.org/releases )
+- scala 3.5.1-RC1 ( http://www.scala-lang.org/ )
+- scas 3.0 ( http://github.com/rjolly/scas/ )
 
 
 To build scas-android on android sdk:
 
+  jar xf $JAVA_HOME/jmods/java.base.jmod classes
+  jar xf $JAVA_HOME/jmods/java.scripting.jmod classes
+  jar xf $JAVA_HOME/jmods/jdk.unsupported.jmod classes
   java -Dscas.home=$SCAS_HOME -Dscala.home=$SCALA_HOME -jar /usr/share/java/proguard.jar @proguard.cfg
   cp $SCAS_HOME/../jscl/dist/jscl.jar libs/
   remove jscl/editor/Editor.properties from libs/jscl.jar
   cp $SCAS_HOME/../meditor/dist/meditor.jar libs/
-  cp $SCAS_HOME/../meditor/txt2xhtml/dist/txt2xhtml.jar libs/
-  cp $SCAS_HOME/../meditor/rendering/dist/rendering.jar libs/
-  ln -s $HOME/lib/bsh-2.0b5.jar libs/bsh.jar
-  android update project --name meditor --target android-34 --path .
-  ant release
+  gradle assembleRelease
 
