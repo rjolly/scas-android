@@ -3,7 +3,7 @@ Software needed:
 
 - Android SDK ( http://developer.android.com/sdk/ )
 - gradle 8.10 ( https://gradle.org/releases )
-- scala 3.5.1-RC1 ( http://www.scala-lang.org/ )
+- scala 3.5.1 ( http://www.scala-lang.org/ )
 - scas 3.0 ( http://github.com/rjolly/scas/ )
 
 
@@ -13,8 +13,8 @@ To build scas-android on android sdk:
   jar xf $JAVA_HOME/jmods/java.scripting.jmod classes
   jar xf $JAVA_HOME/jmods/jdk.unsupported.jmod classes
   java -jar /usr/share/java/proguard.jar @proguard.cfg
-  cp $HOME/lib/jscl-2.4.15.jar libs/jscl.jar
+  cp $HOME/lib/jscl-2.4.17.jar libs/jscl.jar
   remove jscl/editor/Editor.properties from libs/jscl.jar
-  cp $HOME/lib/meditor-5.4.6.jar libs/meditor.jar
+  cp $HOME/lib/meditor-5.4.7.jar libs/meditor.jar
   gradle assembleRelease
 
