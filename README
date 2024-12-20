@@ -3,7 +3,7 @@ Software needed:
 
 - Android SDK ( http://developer.android.com/sdk/ )
 - gradle 8.10 ( https://gradle.org/releases )
-- scala 3.5.1 ( http://www.scala-lang.org/ )
+- scala 3.6.2 ( http://www.scala-lang.org/ )
 - scas 3.0 ( http://github.com/rjolly/scas/ )
 
 
