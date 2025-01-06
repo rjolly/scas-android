@@ -3,8 +3,8 @@ Software needed:
 
 - Android SDK ( http://developer.android.com/sdk/ )
 - gradle 8.10 ( https://gradle.org/releases )
-- scala 3.6.2 ( http://www.scala-lang.org/ )
-- scas 3.0 ( http://github.com/rjolly/scas/ )
+- scala 3.6.3-RC2 ( http://www.scala-lang.org/ )
+- scas 3.1 ( http://github.com/rjolly/scas/ )
 
 
 To build scas-android on android sdk:
