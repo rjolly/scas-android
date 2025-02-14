@@ -10,6 +10,7 @@ Software needed:
 To build scas-android on android sdk:
 
   jar xf $JAVA_HOME/jmods/java.base.jmod classes
+  jar xf $JAVA_HOME/jmods/java.logging.jmod classes
   jar xf $JAVA_HOME/jmods/java.scripting.jmod classes
   jar xf $JAVA_HOME/jmods/jdk.unsupported.jmod classes
   java -jar /usr/share/java/proguard.jar @proguard.cfg

@@ -1,12 +1,10 @@
 bin
 gen
 build
+classes
 .gradle
 libs/scas.jar
 libs/jscl.jar
 libs/meditor.jar
-build.xml
-ant.properties
 local.properties
 gradle.properties
-proguard-project.txt
