@@ -45,7 +45,7 @@ class Eval implements Runnable {
     }
 
     String apply(Object obj) {
-        return obj.toString();
+        return obj == null?null:obj.toString();
     }
 
     void start(Plot graph) {

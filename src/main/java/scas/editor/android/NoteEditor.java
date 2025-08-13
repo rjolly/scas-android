@@ -95,11 +95,7 @@ public class NoteEditor extends Activity {
         case 2:
             return new Eval(bsh, Code.instance("mmljava.xsl"), NoteEditor.this);
         default:
-            return new Eval(factory, Code.instance("mmltxt.xsl"), NoteEditor.this) {
-                String apply(Object obj) {
-                    return null;
-                }
-            };
+            return new Eval(factory, Code.instance("mmltxt.xsl"), NoteEditor.this);
         }
     }
 
