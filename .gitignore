@@ -3,7 +3,8 @@ gen
 build
 classes
 .gradle
-libs/scas.jar
+libs/scas.application_3-3.1.jar
+libs/scas_3-3.1.jar
 libs/jscl.jar
 libs/meditor.jar
 local.properties

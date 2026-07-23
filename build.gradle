@@ -9,7 +9,7 @@ android {
         namespace 'scas.editor.android'
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 67
+        versionCode 68
         versionName '1.0'
     }
     signingConfigs {
@@ -30,13 +30,22 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    packaging {
+        resources {
+            excludes += "**/*.tasty"
+        }
+    }
 }
 
 dependencies {
     implementation 'org.beanshell:bsh:2.0b5'
     implementation 'net.sourceforge.jscl-meditor:txt2xhtml:4.1'
     implementation 'net.sourceforge.jscl-meditor:rendering:1.1'
-    implementation files('libs/scas.jar')
+    implementation 'org.scala-lang:scala3-library_3:3.9.0-RC1'
+    implementation 'org.scala-lang.modules:scala-parser-combinators_3:2.4.0'
+    implementation 'org.scala-lang.modules:scala-parallel-collections_3:1.2.0'
+    implementation files('libs/scas.application_3-3.1.jar')
+    implementation files('libs/scas_3-3.1.jar')
     implementation files('libs/jscl.jar')
     implementation files('libs/meditor.jar')
     implementation files('libs/scripting.jar')
